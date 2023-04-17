@@ -34,6 +34,7 @@ class DynamicOptimizer(torch.optim.Optimizer):
         # using for loop, eval f and check against condition
         for choice in lr_choices:
             group['lr'] = choice
+            # TODO: check how to access original inputs?
             loss_next = closure()
 
             if loss_next < best_loss:
@@ -43,6 +44,7 @@ class DynamicOptimizer(torch.optim.Optimizer):
                 best_lr = choice
         
         # update params
+        # TODO: check if this links properly
         group['lr'] = best_lr
 
         return best_loss
