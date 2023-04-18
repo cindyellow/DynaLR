@@ -1,5 +1,7 @@
 import torch
 from functools import reduce
+from copy import deepcopy
+
 
 class DynamicOptimizer(torch.optim.Optimizer):
     """
@@ -29,30 +31,40 @@ class DynamicOptimizer(torch.optim.Optimizer):
             self._numel_cache = reduce(lambda total, p: total + p.numel(), self._params, 0)
         return self._numel_cache
 
+    # def _make_copy(self):
+    #     """
+    #     Make a deep copy of self._params. From: https://github.com/nlesc-dirac/pytorch/blob/124a693b713c58bb6475db53090d4a5c83194653/lbfgsnew.py
+    #     """
+    #     offset = 0
+    #     new_params = []
+    #     for p in self._params:
+    #         numel = p.numel()
+    #         new_param1=p.data.clone().contiguous().view(-1)
+    #         offset += numel
+    #         new_params.append(new_param1)
+    #     assert offset == self._numel()
+    #     return torch.cat(new_params,0)
+
     def _make_copy(self):
-        """
-        Make a deep copy of self._params. From: https://github.com/nlesc-dirac/pytorch/blob/124a693b713c58bb6475db53090d4a5c83194653/lbfgsnew.py
-        """
-        offset = 0
-        new_params = []
-        for p in self._params:
-            numel = p.numel()
-            new_param1=p.data.clone().contiguous().view(-1)
-            offset += numel
-            new_params.append(new_param1)
-        assert offset == self._numel()
-        return torch.cat(new_params,0)
+        current_params = []
+        for param in self._params:
+            current_params.append(deepcopy(param.data))
+        return current_params
 
     def _reset_params(self, new_params):
         """
         Reset self._params with newparams. From: https://github.com/nlesc-dirac/pytorch/blob/124a693b713c58bb6475db53090d4a5c83194653/lbfgsnew.py
         """
         offset = 0
-        for p in self._params:
-            numel = p.numel()
-            p.data.copy_(new_params[offset:offset+numel].view_as(p.data))
-            offset += numel
-        assert offset == self._numel()
+        # for p in self._params:
+        #     numel = p.numel()
+        #     p.data.copy_(new_params[offset:offset+numel].view_as(p.data))
+        #     offset += numel
+        # assert offset == self._numel()
+        for p, p_current in zip(self._params, new_params):
+            p.data.copy_(p_current)
+            # offset += numel
+        # assert offset == self._numel()
 
     def _try_update(self, lr, curr_params, curr_grad):
         """
@@ -116,7 +128,6 @@ class DynamicOptimizer(torch.optim.Optimizer):
                 print("Found best lr {} for batch {}.".format(best_lr, self.eval_count))
 
         # update lr and params
-        group['lr'] = best_lr
         self._try_update(best_lr, curr_params, curr_grad)
 
         return best_loss
