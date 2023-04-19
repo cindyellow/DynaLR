@@ -1,1 +1,3 @@
-# DynaLR
+# Dynamic Learning Rate Scheduling
+
+This is completed as part of the final project for [CSC413](https://uoft-csc413.github.io/2023/) at the University of Toronto. `dynaopt.py` specifies how our customized optimizer works - searching through potential learning rates for each step. To run the CNN training example with this optimizer, check out `main.ipynb`, which uses ConvNet to classify images from CIFAR10. `LM.ipynb` provides another example of our algorithm implemented in a neural language model for masked word prediction task.
