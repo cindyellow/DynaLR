@@ -81,7 +81,7 @@ class DynamicOptimizer(torch.optim.Optimizer):
         # check if closure is valid
         if closure==None:
             raise Exception('DynamicOptimizer requires closure.')
-
+            
         # save relevant parameters
         group = self.param_groups[0]
         debug = group['debug']
